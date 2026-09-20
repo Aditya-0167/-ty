@@ -1,0 +1,45 @@
+name: verify-poc
+
+# Independent reproduction of the cdap PROXY-mode identity spoofing PoC.
+# Runs against a fresh clone of the real, upstream cdapio/cdap repo on
+# GitHub-hosted infrastructure. No source file in that repo is modified --
+# the real files are copied out verbatim and combined with disclosed,
+# non-substantive stubs (see poc/stubs/ file headers) purely to satisfy
+# unrelated compile-time dependencies outside a full Maven build.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this report repo (for the PoC script)
+        uses: actions/checkout@v4
+        with:
+          path: report
+
+      - name: Check out target repo at the verified commit
+        uses: actions/checkout@v4
+        with:
+          repository: cdapio/cdap
+          ref: 35493c2a4f66e16f4324ee4ef4c7243c64cd8a72
+          path: cdap
+
+      - name: Install JDK and Java dependencies (Ubuntu packages, no Maven Central needed)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-21-jdk-headless libnetty-java libguava-java libguice-java libslf4j-java
+
+      - name: Run the PoC
+        run: bash report/poc/run-repro.sh "$GITHUB_WORKSPACE/cdap" 2>&1 | tee "$GITHUB_WORKSPACE/poc-result.txt"
+
+      - name: Upload run output as a downloadable artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: poc-verification-result
+          path: poc-result.txt
+          if-no-files-found: warn
