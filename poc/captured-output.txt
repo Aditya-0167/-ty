@@ -1,0 +1,13 @@
+Note: src/io/cdap/cdap/security/auth/UserIdentity.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+=== Scenario: attacker sends a direct request claiming to be 'admin' ===
+Extraction success: true
+Resulting identity username: admin
+Resulting identity type: EXTERNAL
+Credential supplied by attacker: null
+
+=== Result ===
+VULNERABLE: the real, unmodified ProxyUserIdentityExtractor accepted an attacker-chosen identity ('admin') from a plain HTTP header, with no verification of any kind that the request came from a trusted proxy rather than directly from the attacker.
